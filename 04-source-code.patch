@@ -1,0 +1,962 @@
+diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/include/X11/xpm.h src/libXpm-3.5.10/include/X11/xpm.h
+--- origsrc/libXpm-3.5.10/include/X11/xpm.h	2012-03-07 23:40:08.000000000 -0500
++++ src/libXpm-3.5.10/include/X11/xpm.h	2013-06-30 18:41:11.234785900 -0400
+@@ -33,7 +33,7 @@
+ \*****************************************************************************/
+ 
+ /*
+- * The code related to FOR_MSW has been added by
++ * The code related to XPM_NO_X has been added by
+  * HeDu (hedu@cul-ipn.uni-kiel.de) 4/94
+  */
+ 
+@@ -42,6 +42,11 @@
+  * Lorens Younes (d93-hyo@nada.kth.se) 4/96
+  */
+ 
++/* 
++ * The code related to CYGWIN has been added by
++ * Charles Wilson (cygwin@cygwin.com) 10/00
++ */
++
+ #ifndef XPM_h
+ #define XPM_h
+ 
+@@ -62,21 +67,33 @@
+ #define XpmRevision 11
+ #define XpmIncludeVersion ((XpmFormat * 100 + XpmVersion) * 100 + XpmRevision)
+ 
++/* XPM_NO_X and FOR_MSW are synonymous */
++#ifdef XPM_NO_X
++#  ifndef FOR_MSW
++#    define FOR_MSW
++#  endif
++#endif
++#ifdef FOR_MSW
++#  ifndef XPM_NO_X
++#    define XPM_NO_X
++#  endif
++#endif
++
+ #ifndef XPM_NUMBERS
+ 
+-#ifdef FOR_MSW
++#ifdef XPM_NO_X
+ # define SYSV			/* uses memcpy string.h etc. */
+ # include <malloc.h>
+ # include "simx.h"		/* defines some X stuff using MSW types */
+ #define NEED_STRCASECMP		/* at least for MSVC++ */
+-#else /* FOR_MSW */
++#else /* XPM_NO_X */
+ # ifdef AMIGA
+ #  include "amigax.h"
+ # else /* not AMIGA */
+ #  include <X11/Xlib.h>
+ #  include <X11/Xutil.h>
+ # endif /* not AMIGA */
+-#endif /* FOR_MSW */
++#endif /* XPM_NO_X */
+ 
+ /* let's define Pixel if it is not done yet */
+ #if ! defined(_XtIntrinsic_h) && ! defined(PIXEL_ALREADY_TYPEDEFED)
+@@ -255,7 +272,7 @@
+ #define XpmReturnComments  XpmComments
+ 
+ /* XpmAttributes mask_pixel value when there is no mask */
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ #define XpmUndefPixel 0x80000000
+ #else
+ /* int is only 16 bit for MSW */
+@@ -285,10 +302,10 @@
+ 
+ _XFUNCPROTOBEGIN
+ 
+-/* FOR_MSW, all ..Pixmap.. are excluded, only the ..XImage.. are used */
++/* XPM_NO_X, all ..Pixmap.. are excluded, only the ..XImage.. are used */
+ /* Same for Amiga! */
+ 
+-#if !defined(FOR_MSW) && !defined(AMIGA)
++#if !defined(XPM_NO_X) && !defined(AMIGA)
+     FUNC(XpmCreatePixmapFromData, int, (Display *display,
+ 					Drawable d,
+ 					char **data,
+@@ -345,7 +362,7 @@
+ 					 XImage **image_return,
+ 					 XImage **shapemask_return,
+ 					 XpmAttributes *attributes));
+-#if !defined(FOR_MSW) && !defined(AMIGA)
++#if !defined(XPM_NO_X) && !defined(AMIGA)
+     FUNC(XpmCreatePixmapFromBuffer, int, (Display *display,
+ 					  Drawable d,
+ 					  char *buffer,
+@@ -389,7 +406,7 @@
+     FUNC(XpmWriteFileFromXpmImage, int, (char *filename,
+ 					 XpmImage *image,
+ 					 XpmInfo *info));
+-#if !defined(FOR_MSW) && !defined(AMIGA)
++#if !defined(XPM_NO_X) && !defined(AMIGA)
+     FUNC(XpmCreatePixmapFromXpmImage, int, (Display *display,
+ 					    Drawable d,
+ 					    XpmImage *image,
+@@ -408,7 +425,7 @@
+ 					   XImage *shapeimage,
+ 					   XpmImage *xpmimage,
+ 					   XpmAttributes *attributes));
+-#if !defined(FOR_MSW) && !defined(AMIGA)
++#if !defined(XPM_NO_X) && !defined(AMIGA)
+     FUNC(XpmCreateXpmImageFromPixmap, int, (Display *display,
+ 					    Pixmap pixmap,
+ 					    Pixmap shapemask,
+diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/create.c src/libXpm-3.5.10/src/create.c
+--- origsrc/libXpm-3.5.10/src/create.c	2012-03-07 23:40:08.000000000 -0500
++++ src/libXpm-3.5.10/src/create.c	2013-06-30 18:42:23.789935800 -0400
+@@ -34,7 +34,7 @@
+ \*****************************************************************************/
+ 
+ /*
+- * The code related to FOR_MSW has been added by
++ * The code related to XPM_NO_X has been added by
+  * HeDu (hedu@cul-ipn.uni-kiel.de) 4/94
+  */
+ 
+@@ -58,7 +58,7 @@
+ LFUNC(FreeColors, int, (Display *display, Colormap colormap,
+ 			Pixel *pixels, int n, void *closure));
+ 
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ LFUNC(SetCloseColor, int, (Display *display, Colormap colormap,
+ 			   Visual *visual, XColor *col,
+ 			   Pixel *image_pixel, Pixel *mask_pixel,
+@@ -89,14 +89,14 @@
+                           Pixel *alloc_pixels, unsigned int *nalloc_pixels,
+                           Pixel *used_pixels, unsigned int *nused_pixels));
+ 
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ LFUNC(ParseAndPutPixels, int, (xpmData *data, unsigned int width,
+ 			       unsigned int height, unsigned int ncolors,
+ 			       unsigned int cpp, XpmColor *colorTable,
+ 			       xpmHashTable *hashtable,
+ 			       XImage *image, Pixel *image_pixels,
+ 			       XImage *mask, Pixel *mask_pixels));
+-#else  /* FOR_MSW */
++#else  /* XPM_NO_X */
+ LFUNC(ParseAndPutPixels, int, (Display *dc, xpmData *data, unsigned int width,
+ 			       unsigned int height, unsigned int ncolors,
+ 			       unsigned int cpp, XpmColor *colorTable,
+@@ -105,7 +105,7 @@
+ 			       XImage *mask, Pixel *mask_pixels));
+ #endif
+ 
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ # ifndef AMIGA
+ /* XImage pixel routines */
+ LFUNC(PutImagePixels, void, (XImage *image, unsigned int width,
+@@ -146,12 +146,12 @@
+ 			      unsigned int height, unsigned int *pixelindex,
+ 			      Pixel *pixels));
+ # endif/* AMIGA */
+-#else  /* FOR_MSW */
+-/* FOR_MSW pixel routine */
++#else  /* XPM_NO_X */
++/* XPM_NO_X pixel routine */
+ LFUNC(MSWPutImagePixels, void, (Display *dc, XImage *image,
+ 				unsigned int width, unsigned int height,
+ 				unsigned int *pixelindex, Pixel *pixels));
+-#endif /* FOR_MSW */
++#endif /* XPM_NO_X */
+ 
+ #ifdef NEED_STRCASECMP
+ FUNC(xpmstrcasecmp, int, (char *s1, char *s2));
+@@ -186,7 +186,7 @@
+ static int
+ xpmVisualType(Visual *visual)
+ {
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ # ifndef AMIGA
+     switch (visual->class) {
+     case StaticGray:
+@@ -207,7 +207,7 @@
+     return (XPM_COLOR);
+ # endif
+ #else
+-    /* there should be a similar switch for MSW */
++    /* there should be a similar switch for XPM_NO_X */
+     return (XPM_COLOR);
+ #endif
+ }
+@@ -249,7 +249,7 @@
+ }
+ 
+ 
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ /*
+  * set a close color in case the exact one can't be set
+  * return 0 if success, 1 otherwise.
+@@ -430,7 +430,7 @@
+       || attributes->blue_closeness != 0)))
+ 
+ #else
+-    /* FOR_MSW part */
++    /* XPM_NO_X part */
+     /* nothing to do here, the window system does it */
+ #endif
+ 
+@@ -468,7 +468,7 @@
+ 	    return (1);
+ 
+ 	if (status == 0) {
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ 	    if (USE_CLOSECOLOR)
+ 		return (SetCloseColor(display, colormap, visual, &xcolor,
+ 				      image_pixel, mask_pixel,
+@@ -476,12 +476,12 @@
+ 				      attributes, cols, ncols,
+ 				      allocColor, closure));
+ 	    else
+-#endif /* ndef FOR_MSW */
++#endif /* ndef XPM_NO_X */
+ 		return (1);
+ 	} else
+ 	    alloc_pixels[(*nalloc_pixels)++] = xcolor.pixel;
+ 	*image_pixel = xcolor.pixel;
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ 	*mask_pixel = 1;
+ #else
+ 	*mask_pixel = RGB(0,0,0);
+@@ -489,7 +489,7 @@
+ 	used_pixels[(*nused_pixels)++] = xcolor.pixel;
+     } else {
+ 	*image_pixel = 0;
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ 	*mask_pixel = 0;
+ #else
+   	*mask_pixel = RGB(255,255,255);
+@@ -568,7 +568,7 @@
+     else
+ 	closure = NULL;
+ 
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+     if (USE_CLOSECOLOR) {
+ 	/* originally from SetCloseColor */
+ #if 0
+@@ -599,7 +599,7 @@
+ 	}
+ #endif
+     }
+-#endif /* ndef FOR_MSW */
++#endif /* ndef XPM_NO_X */
+ 
+     switch (key) {
+     case XPM_MONO:
+@@ -858,7 +858,7 @@
+ 	if (ErrorStatus != XpmSuccess)
+ 	    RETURN(ErrorStatus);
+ 
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ # ifndef AMIGA
+ 
+ 	/*
+@@ -885,7 +885,7 @@
+ 	APutImagePixels(ximage, image->width, image->height,
+ 			image->data, image_pixels);
+ # endif
+-#else  /* FOR_MSW */
++#else  /* XPM_NO_X */
+ 	MSWPutImagePixels(display, ximage, image->width, image->height,
+ 			  image->data, image_pixels);
+ #endif
+@@ -897,7 +897,7 @@
+ 	if (ErrorStatus != XpmSuccess)
+ 	    RETURN(ErrorStatus);
+ 
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ # ifndef AMIGA
+ 	PutImagePixels1(shapeimage, image->width, image->height,
+ 			image->data, mask_pixels);
+@@ -905,7 +905,7 @@
+ 	APutImagePixels(shapeimage, image->width, image->height,
+ 			image->data, mask_pixels);
+ # endif
+-#else  /* FOR_MSW */
++#else  /* XPM_NO_X */
+ 	MSWPutImagePixels(display, shapeimage, image->width, image->height,
+ 			  image->data, mask_pixels);
+ #endif
+@@ -990,7 +990,7 @@
+     if (!*image_return)
+ 	return (XpmNoMemory);
+ 
+-#if !defined(FOR_MSW) && !defined(AMIGA)
++#if !defined(XPM_NO_X) && !defined(AMIGA)
+     if (height != 0 && (*image_return)->bytes_per_line >= INT_MAX / height) {
+ 	XDestroyImage(*image_return);
+ 	return XpmNoMemory;
+@@ -1007,12 +1007,12 @@
+ 	return (XpmNoMemory);
+     }
+ #else
+-    /* under FOR_MSW and AMIGA XCreateImage has done it all */
++    /* under XPM_NO_X and AMIGA XCreateImage has done it all */
+ #endif
+     return (XpmSuccess);
+ }
+ 
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ # ifndef AMIGA
+ /*
+  * The functions below are written from X11R5 MIT's code (XImUtil.c)
+@@ -1721,7 +1721,7 @@
+ }
+ 
+ # endif/* AMIGA */
+-#else  /* FOR_MSW part follows */
++#else  /* XPM_NO_X part follows */
+ static void
+ MSWPutImagePixels(
+     Display		*dc,
+@@ -1744,11 +1744,11 @@
+     SelectObject(*dc, obm);
+ }
+ 
+-#endif /* FOR_MSW */
++#endif /* XPM_NO_X */
+ 
+ 
+ 
+-#if !defined(FOR_MSW) && !defined(AMIGA)
++#if !defined(XPM_NO_X) && !defined(AMIGA)
+ 
+ static int
+ PutPixel1(
+@@ -1966,7 +1966,7 @@
+     return 1;
+ }
+ 
+-#endif /* not FOR_MSW && not AMIGA */
++#endif /* not XPM_NO_X && not AMIGA */
+ 
+ /*
+  * This function parses an Xpm file or data and directly create an XImage
+@@ -2133,7 +2133,7 @@
+ 	if (ErrorStatus != XpmSuccess)
+ 	    RETURN(ErrorStatus);
+ 
+-#if !defined(FOR_MSW) && !defined(AMIGA)
++#if !defined(XPM_NO_X) && !defined(AMIGA)
+ 
+ 	/*
+ 	 * set the XImage pointer function, to be used with XPutPixel,
+@@ -2167,7 +2167,7 @@
+ 	    ximage->f.put_pixel = PutPixel1;
+ 	else
+ 	    ximage->f.put_pixel = PutPixel;
+-#endif /* not FOR_MSW && not AMIGA */
++#endif /* not XPM_NO_X && not AMIGA */
+     }
+ 
+     /* create the shape mask image */
+@@ -2177,7 +2177,7 @@
+ 	if (ErrorStatus != XpmSuccess)
+ 	    RETURN(ErrorStatus);
+ 
+-#if !defined(FOR_MSW) && !defined(AMIGA)
++#if !defined(XPM_NO_X) && !defined(AMIGA)
+ 	if (shapeimage->bitmap_bit_order == MSBFirst)
+ 	    shapeimage->f.put_pixel = PutPixel1MSB;
+ 	else
+@@ -2189,7 +2189,7 @@
+      * read pixels and put them in the XImage
+      */
+     ErrorStatus = ParseAndPutPixels(
+-#ifdef FOR_MSW
++#ifdef XPM_NO_X
+ 				    display,
+ #endif
+ 				    data, width, height, ncolors, cpp,
+@@ -2309,7 +2309,7 @@
+ 
+ static int
+ ParseAndPutPixels(
+-#ifdef FOR_MSW
++#ifdef XPM_NO_X
+     Display		*dc,
+ #endif
+     xpmData		*data,
+@@ -2332,7 +2332,7 @@
+ 					 * colors */
+ 	{
+ 	    unsigned short colidx[256];
+-#ifdef FOR_MSW
++#ifdef XPM_NO_X
+ 	    HDC shapedc;
+ 	    HBITMAP obm, sobm;
+ 
+@@ -2357,7 +2357,7 @@
+ 		    int c = xpmGetC(data);
+ 
+ 		    if (c > 0 && c < 256 && colidx[c] != 0) {
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ 			XPutPixel(image, x, y, image_pixels[colidx[c] - 1]);
+ 			if (shapeimage)
+ 			    XPutPixel(shapeimage, x, y,
+@@ -2372,7 +2372,7 @@
+ 			return (XpmFileInvalid);
+ 		}
+ 	    }
+-#ifdef FOR_MSW
++#ifdef XPM_NO_X
+ 	    if ( shapedc ) {
+ 	        SelectObject(shapedc, sobm);
+ 		DeleteDC(shapedc);
+@@ -2416,7 +2416,7 @@
+ 			int cc2 = xpmGetC(data);
+ 			if (cc2 > 0 && cc2 < 256 &&
+ 			    cidx[cc1] && cidx[cc1][cc2] != 0) {
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ 			    XPutPixel(image, x, y,
+ 				      image_pixels[cidx[cc1][cc2] - 1]);
+ 			    if (shapeimage)
+@@ -2466,7 +2466,7 @@
+ 			slot = xpmHashSlot(hashtable, buf);
+ 			if (!*slot)	/* no color matches */
+ 			    return (XpmFileInvalid);
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ 			XPutPixel(image, x, y,
+ 				  image_pixels[HashColorIndex(slot)]);
+ 			if (shapeimage)
+@@ -2495,7 +2495,7 @@
+ 				break;
+ 			if (a == ncolors)	/* no color matches */
+ 			    return (XpmFileInvalid);
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ 			XPutPixel(image, x, y, image_pixels[a]);
+ 			if (shapeimage)
+ 			    XPutPixel(shapeimage, x, y, shape_pixels[a]);
+diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/parse.c src/libXpm-3.5.10/src/parse.c
+--- origsrc/libXpm-3.5.10/src/parse.c	2012-03-07 23:40:08.000000000 -0500
++++ src/libXpm-3.5.10/src/parse.c	2013-06-30 18:42:54.167673400 -0400
+@@ -34,7 +34,7 @@
+ \*****************************************************************************/
+ 
+ /*
+- * The code related to FOR_MSW has been added by
++ * The code related to XPM_NO_X has been added by
+  * HeDu (hedu@cul-ipn.uni-kiel.de) 4/94
+  */
+ 
+@@ -383,7 +383,7 @@
+     if ((height > 0 && width >= UINT_MAX / height) ||
+ 	width * height >= UINT_MAX / sizeof(unsigned int))
+ 	return XpmNoMemory;
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+     iptr2 = (unsigned int *) XpmMalloc(sizeof(unsigned int) * width * height);
+ #else
+ 
+diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/RdFToBuf.c src/libXpm-3.5.10/src/RdFToBuf.c
+--- origsrc/libXpm-3.5.10/src/RdFToBuf.c	2012-03-07 23:40:08.000000000 -0500
++++ src/libXpm-3.5.10/src/RdFToBuf.c	2013-06-30 18:43:06.247364300 -0400
+@@ -33,7 +33,7 @@
+ \*****************************************************************************/
+ 
+ /*
+- * The code related to FOR_MSW has been added by
++ * The code related to XPM_NO_X has been added by
+  * HeDu (hedu@cul-ipn.uni-kiel.de) 4/94
+  */
+ 
+@@ -44,13 +44,13 @@
+ #endif
+ #include "XpmI.h"
+ #include <sys/stat.h>
+-#if !defined(FOR_MSW) && !defined(WIN32)
++#if defined(__CYGWIN__) || (!defined(XPM_NO_X) && !defined(WIN32))
+ #include <unistd.h>
+ #endif
+ #ifndef VAX11C
+ #include <fcntl.h>
+ #endif
+-#if defined(FOR_MSW) || defined(WIN32)
++#if (defined(XPM_NO_X) || defined(WIN32)) && !defined(__CYGWIN__)
+ #include <io.h>
+ #define stat _stat
+ #define fstat _fstat
+diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/RdFToI.c src/libXpm-3.5.10/src/RdFToI.c
+--- origsrc/libXpm-3.5.10/src/RdFToI.c	2012-03-07 23:40:08.000000000 -0500
++++ src/libXpm-3.5.10/src/RdFToI.c	2013-06-30 18:43:17.587012900 -0400
+@@ -38,6 +38,9 @@
+ #include <config.h>
+ #endif
+ #include "XpmI.h"
++#if defined(__CYGWIN__) || (!defined(XPM_NO_X) && !defined(WIN32))
++#include <unistd.h>
++#endif
+ #ifndef NO_ZPIPE
+ #include <fcntl.h>
+ #include <errno.h>
+diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/rgb.c src/libXpm-3.5.10/src/rgb.c
+--- origsrc/libXpm-3.5.10/src/rgb.c	2012-03-07 23:40:08.000000000 -0500
++++ src/libXpm-3.5.10/src/rgb.c	2013-06-30 18:44:12.065128800 -0400
+@@ -33,7 +33,7 @@
+ \*****************************************************************************/
+ 
+ /*
+- * The code related to FOR_MSW has been added by
++ * The code related to XPM_NO_X has been added by
+  * HeDu (hedu@cul-ipn.uni-kiel.de) 4/94
+  */
+ 
+@@ -48,7 +48,7 @@
+ #include "XpmI.h"
+ #include <ctype.h>
+ 
+-#ifndef FOR_MSW				/* normal part first, MSW part at
++#ifndef XPM_NO_X			/* normal part first, MSW part at
+ 					 * the end, (huge ifdef!) */
+ /*
+  * Read a rgb text file.  It stores the rgb values (0->65535)
+@@ -222,7 +222,7 @@
+      * lot of gray
+      */
+     /* so first extract ' ' */
+-    while (p = strchr(name, ' ')) {
++    while ((p = strchr(name, ' '))) {
+ 	while (*(p)) {			/* till eof of string */
+ 	    *p = *(p + 1);		/* copy to the left */
+ 	    p++;
+@@ -239,7 +239,7 @@
+      * substitute Grey with Gray, else rgbtab.h would have more than 100
+      * 'duplicate' entries
+      */
+-    if (grey = strstr(name, "grey"))
++    if ((grey = strstr(name, "grey")))
+ 	grey[2] = 'a';
+ 
+     /* binary search */
+diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/rgbtab.h src/libXpm-3.5.10/src/rgbtab.h
+--- origsrc/libXpm-3.5.10/src/rgbtab.h	2012-03-07 23:40:08.000000000 -0500
++++ src/libXpm-3.5.10/src/rgbtab.h	2013-06-30 18:44:26.061929400 -0400
+@@ -286,7 +286,7 @@
+     {"WhiteSmoke", myRGB(245, 245, 245)},
+     {"Yellow", myRGB(255, 255, 0)},
+     {"YellowGreen", myRGB(50, 216, 56)},
+-    NULL
++    {NULL, 0}
+ };
+ 
+ static int numTheRGBRecords = 234;
+diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/scan.c src/libXpm-3.5.10/src/scan.c
+--- origsrc/libXpm-3.5.10/src/scan.c	2012-03-07 23:40:08.000000000 -0500
++++ src/libXpm-3.5.10/src/scan.c	2013-06-30 18:44:35.895491900 -0400
+@@ -33,7 +33,7 @@
+ \*****************************************************************************/
+ 
+ /*
+- * The code related to FOR_MSW has been added by
++ * The code related to XPM_NO_X has been added by
+  * HeDu (hedu@cul-ipn.uni-kiel.de) 4/94
+  */
+ 
+@@ -81,7 +81,7 @@
+ typedef int (*storeFuncPtr)(Pixel pixel, PixelsMap *pmap,
+ 			    unsigned int *index_return);
+ 
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ # ifndef AMIGA
+ LFUNC(GetImagePixels, int, (XImage *image, unsigned int width,
+ 			    unsigned int height, PixelsMap *pmap));
+@@ -103,7 +103,7 @@
+ 			     unsigned int height, PixelsMap *pmap,
+ 			     storeFuncPtr storeFunc));
+ # endif/* AMIGA */
+-#else  /* ndef FOR_MSW */
++#else  /* ndef XPM_NO_X */
+ LFUNC(MSWGetImagePixels, int, (Display *d, XImage *image, unsigned int width,
+ 			       unsigned int height, PixelsMap *pmap,
+ 			       storeFuncPtr storeFunc));
+@@ -255,7 +255,7 @@
+      * scan shape mask if any
+      */
+     if (shapeimage) {
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ # ifndef AMIGA
+ 	ErrorStatus = GetImagePixels1(shapeimage, width, height, &pmap,
+ 				      storeMaskPixel);
+@@ -280,7 +280,7 @@
+      */
+ 
+     if (image) {
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ # ifndef AMIGA
+ 	if (((image->bits_per_pixel | image->depth) == 1)  &&
+ 	    (image->byte_order == image->bitmap_bit_order))
+@@ -430,7 +430,7 @@
+     Colormap colormap;
+     char *rgb_fname;
+ 
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+     xpmRgbName rgbn[MAX_RGBNAMES];
+ #else
+     xpmRgbName *rgbn = NULL;
+@@ -486,12 +486,12 @@
+     }
+     XQueryColors(display, colormap, xcolors, ncolors);
+ 
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+     /* read the rgb file if any was specified */
+     if (rgb_fname)
+ 	rgbn_max = xpmReadRgbNames(attributes->rgb_fname, rgbn);
+ #else
+-    /* FOR_MSW: rgb names and values are hardcoded in rgbtab.h */
++    /* XPM_NO_X: rgb names and values are hardcoded in rgbtab.h */
+     rgbn_max = xpmReadRgbNames(NULL, NULL);
+ #endif
+ 
+@@ -556,7 +556,7 @@
+ 	    else {
+ 		/* at last store the rgb value */
+ 		char buf[BUFSIZ];
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ 		sprintf(buf, "#%04X%04X%04X",
+ 			xcolor->red, xcolor->green, xcolor->blue);
+ #else
+@@ -578,7 +578,7 @@
+     return (XpmSuccess);
+ }
+ 
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ # ifndef AMIGA
+ /*
+  * The functions below are written from X11R5 MIT's code (XImUtil.c)
+@@ -950,7 +950,7 @@
+ #undef CLEAN_UP
+ 
+ # endif/* AMIGA */
+-#else  /* ndef FOR_MSW */
++#else  /* ndef XPM_NO_X */
+ static int
+ MSWGetImagePixels(
+     Display	 *display,
+@@ -979,7 +979,7 @@
+ 
+ #endif
+ 
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ # ifndef AMIGA
+ int
+ XpmCreateXpmImageFromPixmap(
+@@ -1021,4 +1021,4 @@
+ }
+ 
+ # endif/* not AMIGA */
+-#endif /* ndef FOR_MSW */
++#endif /* ndef XPM_NO_X */
+diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/simx.c src/libXpm-3.5.10/src/simx.c
+--- origsrc/libXpm-3.5.10/src/simx.c	2012-03-07 23:40:08.000000000 -0500
++++ src/libXpm-3.5.10/src/simx.c	2013-06-30 18:51:19.660585900 -0400
+@@ -33,7 +33,7 @@
+ * Developed by HeDu 3/94 (hedu@cul-ipn.uni-kiel.de)                           *
+ \*****************************************************************************/
+ 
+-#ifdef FOR_MSW
++#ifdef XPM_NO_X
+ 
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+@@ -108,22 +108,22 @@
+ 
+ /* static Visual theVisual = { 0 }; */
+ Visual *
+-XDefaultVisual(Display *display, Screen *screen)
++XDefaultVisual(Display *display, int screen_number)
+ {
+     return (NULL);			/* struct could contain info about
+ 					 * MONO, GRAY, COLOR */
+ }
+ 
+-Screen *
++int
+ XDefaultScreen(Display *d)
+ {
+-    return (NULL);
++    return (0);
+ }
+ 
+ /* I get only 1 plane but 8 bits per pixel,
+    so I think BITSPIXEL should be depth */
+ int
+-XDefaultDepth(Display *display, Screen *screen)
++XDefaultDepth(Display *display, int screen_number)
+ {
+     int d, b;
+ 
+@@ -132,8 +132,8 @@
+     return (b);
+ }
+ 
+-Colormap *
+-XDefaultColormap(Display *display, Screen *screen)
++Colormap
++XDefaultColormap(Display *display, int screen_number)
+ {
+     return (NULL);
+ }
+@@ -141,7 +141,7 @@
+ /* convert hex color names,
+    wrong digits (not a-f,A-F,0-9) are treated as zero */
+ static int
+-hexCharToInt(c)
++hexCharToInt(int c)
+ {
+     int r;
+ 
+@@ -188,7 +188,7 @@
+ 
+ /* Color related functions */
+ int
+-XParseColor(Display *d, Colormap *cmap, char *name, XColor *color)
++XParseColor(Display *d, Colormap cmap, char *name, XColor *color)
+ {
+     int r, g, b;			/* only 8 bit values used */
+     int okay;
+@@ -222,12 +222,12 @@
+    index in some colormap as in X */
+     return (1);
+ }
+-void
+-XQueryColors(Display *display, Colormap *colormap,
++int
++XQueryColors(Display *display, Colormap colormap,
+ 	     XColor *xcolors, int ncolors)
+ {
+ /* under X this fills the rgb values to given .pixel */
+-/* since there no colormap use FOR_MSW (not yet!!), rgb is plain encoded */
++/* since there no colormap use XPM_NO_X (not yet!!), rgb is plain encoded */
+     XColor *xc = xcolors;
+     int i;
+ 
+@@ -236,11 +236,11 @@
+ 	xc->green = GetGValue(xc->pixel);
+ 	xc->blue = GetBValue(xc->pixel);
+     }
+-    return;
++    return (0);
+ }
+ int
+ XFreeColors(Display *d, Colormap cmap,
+-	    unsigned long pixels[], int npixels, unsigned long planes)
++	    unsigned long* pixels, int npixels, unsigned long planes)
+ {
+     /* no colormap yet */
+     return (0);				/* correct ??? */
+@@ -249,9 +249,10 @@
+ /* XImage functions */
+ XImage *
+ XCreateImage(Display *d, Visual *v,
+-	     int depth, int format,
+-	     int x, int y, int width, int height,
+-	     int pad, int foo)
++	     unsigned int depth, int format,
++	     int offset, char* data,
++	     unsigned int width, unsigned int height,
++	     int pad, int bytes_per_line)
+ {
+     XImage *img = (XImage *) XpmMalloc(sizeof(XImage));
+ 
+@@ -281,13 +282,14 @@
+ 	XpmFree(img);
+     }
+ }
+-void
++int
+ XDestroyImage(XImage *img)
+ {
+     if (img) {
+ 	DeleteObject(img->bitmap);	/* check return ??? */
+ 	XImageFree(img);
+     }
++    return (0);
+ }
+ 
+ #endif
+diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/simx.h src/libXpm-3.5.10/src/simx.h
+--- origsrc/libXpm-3.5.10/src/simx.h	2012-03-07 23:40:08.000000000 -0500
++++ src/libXpm-3.5.10/src/simx.h	2013-06-30 18:45:06.841261800 -0400
+@@ -37,12 +37,28 @@
+ #ifndef _SIMX_H
+ #define _SIMX_H
+ 
+-#ifdef FOR_MSW
++#ifdef XPM_NO_X
+ 
+ #include "windows.h"			/* MS windows GDI types */
+-#define _XFUNCPROTOBEGIN
+-#define _XFUNCPROTOEND
+-#define NO_ZPIPE
++
++#ifndef _XFUNCPROTOBEGIN
++# ifdef __CYGWIN__
++#  if defined(__cplusplus) || defined(c_plusplus) /* for C++ V2.0 */
++#   define _XFUNCPROTOBEGIN extern "C" {   /* do not leave open across includes */
++#   define _XFUNCPROTOEND }
++#  else
++#   define _XFUNCPROTOBEGIN
++#   define _XFUNCPROTOEND
++#  endif
++# else /* ! __CYGWIN__ */
++#  define _XFUNCPROTOBEGIN
++#  define _XFUNCPROTOEND
++# endif /* !__CYGWIN__ */
++#endif /* _XFUNCPROTOBEGIN */
++
++#ifndef __CYGWIN__
++# define NO_ZPIPE
++#endif
+ 
+ /*
+  * minimal portability layer between ansi and KR C
+@@ -91,37 +107,33 @@
+     unsigned int depth;
+ }      XImage;
+ 
+-#if defined(__cplusplus) || defined(c_plusplus)
+-extern "C" {
+-#endif
++
+ /* some replacements for X... functions */
++_XFUNCPROTOBEGIN
+ 
+ /* XDefaultXXX */
+-    FUNC(XDefaultVisual, Visual *, (Display *display, Screen *screen));
+-    FUNC(XDefaultScreen, Screen *, (Display *d));
+-    FUNC(XDefaultColormap, Colormap *, (Display *display, Screen *screen));
+-    FUNC(XDefaultDepth, int, (Display *d, Screen *s));
++    FUNC(XDefaultVisual, Visual *, (Display *, int screen_number));
++    FUNC(XDefaultScreen, int, (Display *));
++    FUNC(XDefaultColormap, Colormap, (Display *, int screen_number));
++    FUNC(XDefaultDepth, int, (Display *, int screen_number));
+ 
+ /* color related */
+-    FUNC(XParseColor, int, (Display *, Colormap *, char *, XColor *));
++    FUNC(XParseColor, int, (Display *, Colormap, char *, XColor *));
+     FUNC(XAllocColor, int, (Display *, Colormap, XColor *));
+-    FUNC(XQueryColors, void, (Display *display, Colormap *colormap,
+-			      XColor *xcolors, int ncolors));
+-    FUNC(XFreeColors, int, (Display *d, Colormap cmap,
+-			    unsigned long pixels[],
+-			    int npixels, unsigned long planes));
++    FUNC(XQueryColors, int, (Display *, Colormap, XColor *, int));
++    FUNC(XFreeColors, int, (Display *, Colormap, unsigned long*,
++			    int, unsigned long));
+ /* XImage */
+-    FUNC(XCreateImage, XImage *, (Display *, Visual *, int depth, int format,
+-				  int x, int y, int width, int height,
+-				  int pad, int foo));
++    FUNC(XCreateImage, XImage *, (Display *, Visual *, unsigned int,
++				  int, int, char*, unsigned int,
++				  unsigned int, int, int));
+ 
+ /* free and destroy bitmap */
+-    FUNC(XDestroyImage, void /* ? */ , (XImage *));
++    FUNC(XDestroyImage, int, (XImage *));
+ /* free only, bitmap remains */
+     FUNC(XImageFree, void, (XImage *));
+-#if defined(__cplusplus) || defined(c_plusplus)
+-} /* end of extern "C" */
+-#endif /* cplusplus */
++
++_XFUNCPROTOEND
+ 
+ #define ZPixmap 1			/* not really used */
+ #define XYBitmap 1			/* not really used */
+@@ -137,6 +149,7 @@
+ #undef LFUNC
+ #undef FUNC
+ 
++#ifndef __CYGWIN__
+ /* Some functions and constants that have non-standard names in the
+    MS library.  */
+ #define bzero(addr,sz) memset(addr, 0, sz)
+@@ -148,7 +161,8 @@
+ #define rindex strrchr
+ #define strdup _strdup
+ 
++#endif /* ! __CYGWIN__ */
+ 
+-#endif /* def FOR_MSW */
++#endif /* def XPM_NO_X */
+ 
+ #endif /* _SIMX_H */
+diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/XpmI.h src/libXpm-3.5.10/src/XpmI.h
+--- origsrc/libXpm-3.5.10/src/XpmI.h	2012-03-07 23:40:08.000000000 -0500
++++ src/libXpm-3.5.10/src/XpmI.h	2013-06-30 18:45:41.417239500 -0400
+@@ -35,7 +35,7 @@
+ \*****************************************************************************/
+ 
+ /*
+- * The code related to FOR_MSW has been added by
++ * The code related to XPM_NO_X has been added by
+  * HeDu (hedu@cul-ipn.uni-kiel.de) 4/94
+  */
+ 
+@@ -57,7 +57,7 @@
+ extern FILE *popen();
+ #endif
+ 
+-#ifdef FOR_MSW
++#ifdef XPM_NO_X
+ #include "simx.h"
+ #else
+ #include <X11/Xos.h>
+@@ -79,7 +79,7 @@
+  */
+ #define XpmFree(ptr) free(ptr)
+ 
+-#ifndef FOR_MSW
++#ifndef XPM_NO_X
+ #define XpmMalloc(size) malloc((size))
+ #define XpmRealloc(ptr, size) realloc((ptr), (size))
+ #define XpmCalloc(nelem, elsize) calloc((nelem), (elsize))
+@@ -187,7 +187,7 @@
+ FUNC(xpmSetAttributes, void, (XpmAttributes *attributes, XpmImage *image,
+ 			      XpmInfo *info));
+ 
+-#if !defined(FOR_MSW) && !defined(AMIGA)
++#if !defined(XPM_NO_X) && !defined(AMIGA)
+ FUNC(xpmCreatePixmapFromImage, void, (Display *display, Drawable d,
+ 				      XImage *ximage, Pixmap *pixmap_return));
+ 
+@@ -253,7 +253,7 @@
+ FUNC(xpmGetRgbName, char *, (xpmRgbName *rgbn, int rgbn_max,
+ 			     int red, int green, int blue));
+ FUNC(xpmFreeRgbNames, void, (xpmRgbName *rgbn, int rgbn_max));
+-#ifdef FOR_MSW
++#ifdef XPM_NO_X
+ FUNC(xpmGetRGBfromName,int, (char *name, int *r, int *g, int *b));
+ #endif
+ 

@@ -1,0 +1,227 @@
+xpm-nox
+========================================================================
+This package provides a library for accessing xpm graphics files -- but
+without requiring the X11 libraries to do so.  Therefore, the display
+routines are not available, but the decoding routines are.  See the
+Motivation: section for more information.
+
+Canonical homepage:
+  http://xorg.freedesktop.org/
+
+Canonical download:
+  http://xorg.freedesktop.org/releases/individual/lib/
+
+========================================================================
+
+To link this library with your projects:
+
+NonX-based, dynamic (/usr/lib/noX/libXpm.dll.a, /usr/bin/cygXpm-noX-4.dll)
+  #1) linked code MAY require an Xserver if other code makes X 
+      calls. libXpm-noX does not make any X calls, but if you try
+      to use this library, AND regular X libraries, expect...problems. 
+  #2) include Xpm.h in your client code
+  #3) make sure the special noX directories are included in
+      your search paths: -I/usr/include/noX/ and -L/usr/lib/noX
+  #4) use -DXPM_NO_X when compiling client code
+  #5) note that "XPM_NO_X" is equivalent to the old flag, "FOR_MSW"
+      defining either flag will cause the other to be defined, as
+      well -- this helps with smart packages like XEmacs that already
+      know about "FOR_MSW"
+  #6) link using '-L/usr/lib/noX -lXpm -lgdi32 -luser32'
+Note:
+   pkg-config --cflags xpm-nox 
+   pkg-config --libs xpm-nox 
+will do the right thing.
+
+NonX-based, static (/usr/lib/noX/libXpm.a)
+  #1) linked code MAY require an Xserver if other code makes X 
+      calls. libXpm-noX does not make any X calls, but again, if you
+      try to use this library, AND regular X libraries, expect...
+      problems.
+  #2) include Xpm.h in your client code
+  #3) make sure the special noX directories are included in
+      your search paths: -I/usr/include/noX/ and -L/usr/lib/noX
+  #4) use -DXPM_NO_X when compiling client code
+  #5) note that "XPM_NO_X" is equivalent to the old flag, "FOR_MSW"
+      defining either flag will cause the other to be defined, as
+      well -- this helps with smart packages like XEmacs that already
+      know about "FOR_MSW"
+  #6a) use 'gcc -static' to link
+  #6b) also specify '-L/usr/lib/noX -lXpm -lgdi32 -luser32' when linking
+  #6c) alternatively, use:
+            gcc -L/usr/lib/noX -Wl,-Bstatic -lXpm -Wl,-Bdynamic -lgdi32 -luser32
+       when linking.
+  #8) The binary produced *may* have some dynamic dependencies; the 
+      OTHER X libraries are only available as dynamic libs, so if 
+      your program makes *other* X11 calls then it will depend on
+      those, and of course there's cygwin1.dll.
+Note:
+   pkg-config --static --cflags xpm-nox
+   pkg-config --static --libs xpm-nox 
+will do the right thing (assuming you follow step #6a above).
+
+========================================================================
+
+Motivation:
+
+Why this library? Doesn't cygwin already provide the X libraries as part
+of the distribution? Doesn't that include libXpm.dll?
+
+  Well, yes.  But, this package uses the cygXpm.dll provides a version
+  of libXpm that does NOT require an Xserver. This is particularly
+  useful if all you want are the routines to load and process xpm images
+  but do not want to necessarily use X-based code to display those
+  images.  For instance, building a cygwin-XEmacs that uses the
+  MSWindows display code rather than the X display code.
+
+  Note that this package provides ONLY the non-X version of the Xpm
+  library.  The X-based version is available in the libXpm (libXpm-devel,
+  libXpm4) packages that are also part of the cygwin distribution.  Both
+  may be installed at the same time without conflict.
+
+========================================================================
+
+Port Notes:
+----------  libXpm-noX-3.5.10-1 -- 2013 Jul 01 -----------
+* Updated to latest upstream release.
+* Updated to latest cygport. Rely on auto-generated setup.hints.
+* No longer install libtool .la library
+* New debuginfo (sub)package
+* First 64bit build. Fixes to sxpm-nox.c to support 64bit.
+
+----------  libXpm-noX-3.5.7-12 -- 2009 Mar 23 -----------
+* Fixed packaging bug in libXpm-noX.la
+
+----------  libXpm-noX-3.5.7-11 -- 2009 Mar 14 -----------
+* Added libXpm.dll.a, libXpm.a, and libXpm.la 
+  compatibility links in /usr/lib/noX/.
+
+----------  libXpm-noX-3.5.7-10 -- 2009 Mar 13 -----------
+* Fork for cygwin-1.7 development
+
+----------  libXpm-noX-3.5.7-1 -- 2009 Mar 13 -----------
+* Updated to latest upstream release
+* Installed sample xpm files
+* Modified simx.h and simx.c so that function signatures
+  match current Xlib.h and Xutil.h
+* Added new sxpm-noX.exe program. This is a simple xpm viewer
+  that uses the cygXpm-noX_4.dll.
+  | Usage:  sxpm-win [--bgcolor bg] [--zoom sc] [-hv] file.xpm
+  | 
+  |    -b, --bgcolor=bg     desired background color in one of several
+  |                         formats, or wellknown color names. Formats
+  |                         include: #rrggbb, #rrrgggbbb, #rrrrggggbbbb,
+  |                         rgb:rrrr/gggg/bbbb, MediumPurple4, Gray85, ...
+  |                         This only matters with transparent images.
+  |    -z, --zoom=sc        desired scale (must be 1 or larger integer)
+  |    -h, --help           display this help
+  |    -v, --verbose        display XPM information
+  | 
+  | Press Q, Esc or mouse button 1 (within image window, after image
+  | is displayed) to quit.
+
+----------  libXpm-noX-3.5.6-1 -- 15 Nov 2006 -----------
+* Use x.org modularized library (via git)
+  + use autotool-based build rather than custom 
+     Makefile.cygwins.  Include libtool .la file
+     and pkgconfig .pc file.
+* Switch to cygport build framework
+* split into multiple packages
+* Entire library name change:
+  was: xpm-nox
+  now: libXpm-noX, libXpm-noX_4, libXpm-noX-devel
+* xpm-nox contained     : cygXpm-noX4.dll
+  libXpm-noX_4 contains : cygXpm-noX-4.dll
+  Therefore: xpm-nox still exists, but ONLY provides the old DLL
+
+
+4.2.0-5
+---------------------
+* Preparations for release by cygwin-x team of x.org modular build.
+  The modular build moves all X libraries and headers into the /usr
+  (not /usr/X11R6) tree, and could cause conflicts if we are not 
+  careful. This is being careful:
+  (1) remove sxpm entirely
+  (2) remove ancient compatibility DLL cygXpm-X4.dll
+  (3) rename cxpm.exe to cxpm-noX.exe
+  (4) rename cxpm.1 to cxpm-noX.1
+
+4.2.0-4
+---------------------
+* Oops again. This is the cygwin-1.5.2 FLAG DAY release
+
+4.2.0-3
+---------------------
+* Oops. This is the cygwin-1.5.1 FLAG DAY release
+* Moved docs to /usr/share.
+
+4.2.0-2
+---------------------
+* This is the cygwin-1.5.0 FLAG DAY release
+* Add sxpm.exe back; now that XFree86 is available in a 
+  setup-compatible form from the cygwin-xfree team, it's much
+  more likely that the end-user will have the necessary libs.
+  HOWEVER, we do not list XFRee86 as a dependency.  Slightly
+  wrong, but harmless enough.
+
+4.2.0-1
+---------------------
+* removed static executables
+* removed sxpm entirely (as it requires X libraries, and a
+setup-compatible XFree86 distribution is not yet available
+from the cygwin-xfree team.
+
+There are two libraries in this package:
+  1) static, noX "/usr/lib/noX/libXpm.a"
+  2) dll, noX    "/usr/bin/cygXpm-noX4.dll" with its
+     import lib  "/usr/lib/noX/libXpm.dll.a"
+
+The dll is named "cygXpm-noX4.dll" NOT "libXpm.dll".  This 
+  helps to avoid dll naming conflicts between cygwin dll's and 
+  dlls from other platforms (native, pw, etc).  And helps 
+  distinguish the X-based DLL ('/usr/X11R6/bin/libXpm.dll' from
+  the cygwin-xfree distribution) and this noX DLL from each other. 
+
+The DLL is versioned. (i.e. "cygXpm-noX4.dll" NOT "cygXpm-noX.dll")
+  Again, this helps distinguish the dll's from later, possibly
+  incompatible releases.  As long as newer releases are still
+  API/ABI compatible, they will retain the same version number
+  shown here (4). 
+
+Since the header files have been munged to decorate functions with
+  __declspec(dllimport|dllexport) unless -DXPM_STATIC is used,
+  *this* xpm.h is not compatible with the libXpm library and xpm.h
+  header in the cygwin-xfree distribution.  It's okay though, and
+  hasn't caused me any problems; you just have take care to EITHER
+  use -I/usr/include/noX/ OR -I/usr/X11R6/include, not both.  Also,
+  use -L/usr/lib/noX OR -L/usr/X11R6/lib, not both.
+
+There are two utility programs provided:
+  1) cxpm.exe
+     This is a console mode, Xpm-checker program. It 
+     does NOT require an Xserver in order to run. 
+     cxpm shares code with the Xpm library but does NOT link
+     with that library, so questions of "static" or "dynamic"
+     linking are moot.  It does NOT require the cygwin-xfree
+     libraries.
+  2) cxpm-noX.exe
+     This version of cxpm is is built with XPM_NO_X defined,
+     as a test. It also does not require an Xserver, nor does
+     it requires the cygwin-xfree libraries.
+
+The following two programs USED to be distributed with
+this package, but since they require the X-based version
+of the library, and this package no longer provides the
+X-based library, these were removed...
+  3) sxpm.exe
+     This is a very simple xpm viewer. It uses X-calls to
+     create an Xwindow, so it cannot be built with the 
+     noX library.  This version is dynamically linked
+     (to cygXpm-X4.dll) and requires an Xserver.  It also
+     *requires* that the cygwin-xfree libraries are installed.
+  4) sxpm-stat.exe
+     A statically linked version of sxpm (libXpm-X.a).  It
+     requires an Xserver, and it also requires that the
+     cygwin-xfree libraries are installed. 
+
+Cygwin port maintained by: Charles Wilson   <cygwin@cygwin.com>

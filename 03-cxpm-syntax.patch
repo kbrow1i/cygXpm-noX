@@ -1,0 +1,59 @@
+diff -urN origsrc/libXpm-3.5.10/cxpm/cxpm.c src/libXpm-3.5.10/cxpm/cxpm.c
+--- origsrc/libXpm-3.5.10/cxpm/cxpm.c	2012-03-07 23:40:08.000000000 -0500
++++ src/libXpm-3.5.10/cxpm/cxpm.c	2013-06-30 18:39:52.877304100 -0400
+@@ -44,6 +44,15 @@
+ #define gettext(a) (a)
+ #endif
+ 
++#ifdef XPM_NO_X
++#  include "../src/simx.c"
++#  include "../src/rgb.c"
++#  ifndef NEED_STRCASECMP
++#    define NEED_STRCASECMP
++#  endif
++FUNC(xpmstrcasecmp, int, (char *s1, char *s2));
++#endif
++
+ #undef xpmGetC
+ #define xpmGetC(data) sGetc(data, data->stream.file)
+ #define Getc sGetc
+@@ -79,6 +88,28 @@
+     }
+ }
+ 
++#ifdef NEED_STRCASECMP
++int
++xpmstrcasecmp(register char *s1, register char *s2)
++{
++    register int c1, c2;
++
++    while (*s1 && *s2) {
++        c1 = tolower(*s1);
++        c2 = tolower(*s2);
++        if (c1 != c2)
++            return (c1 - c2);
++        s1++;
++        s2++;
++    }
++    return (int) (*s1 - *s2);
++}
++#endif
++
++#ifndef NO_ZPIPE
++FILE* xpmPipeThrough(int fd, const char *cmd, const char *arg1, const char *mode);
++#endif
++
+ /* include all the code we need (yeah, I know, quite ugly...) */
+ #include "data.c"
+ #include "parse.c"
+@@ -89,9 +120,7 @@
+ #include "Image.c"
+ 
+ static void
+-ErrorMessage(
+-    int ErrorStatus,
+-    xpmData *data)
++ErrorMessage(int ErrorStatus, xpmData *data)
+ 
+ {
+     char *error = NULL;

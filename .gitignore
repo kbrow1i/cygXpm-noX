@@ -1,0 +1,7 @@
+*~
+*.i686/
+*.x86_64/
+*.noarch/
+*.tar.gz
+*.tar.bz2
+temp.*

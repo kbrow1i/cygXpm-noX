@@ -1,0 +1,85 @@
+NAME="libXpm-noX"
+VERSION=3.5.12
+RELEASE=1
+SUMMARY="X.Org X Pixmap library -- no X required"
+DESCRIPTION="
+
+A version of the X.Org X Pixmap library that does
+not require an X server, and provides none of the X-based display
+routines.  It provides tools and libraries for manipulating XPM
+images.  It is useful if you have an application that needs to
+read and write Xpm format files, but either does not display
+them or handles display itself, without accessing X11 services."
+HOMEPAGE="https://cgit.freedesktop.org/xorg/lib/libXpm"
+ORIG_PN="libXpm"
+xorg_cat="lib"
+SRC_URI="http://xorg.freedesktop.org/releases/individual/${xorg_cat}/${ORIG_PN}-${PV}.tar.bz2
+	sxpm-win.c"
+PATCH_URI="
+	01-build-system.patch
+	02-msw-doc.patch
+	03-cxpm-syntax.patch
+	04-source-code.patch"
+
+PKG_NAMES="libXpm-noX libXpm-noX-devel libXpm-noX_4"
+
+libXpm_noX_CATEGORY="Graphics"
+libXpm_noX_SUMMARY="${SUMMARY} (utilities)"
+
+libXpm_noX_devel_CATEGORY="Graphics Libs Devel"
+libXpm_noX_devel_SUMMARY="${SUMMARY} (devel)"
+libXpm_noX_devel_DESCRIPTIION="${SUMMARY}
+This package provides the (specialized) header files
+and link libraries in /usr/include/noX and /usr/lib/noX,
+respectively."
+
+libXpm_noX_4_CATEGORY="Graphics Libs"
+libXpm_noX_4_SUMMARY="${SUMMARY} (runtime)"
+
+libXpm_noX_CONTENTS="--exclude=usr/bin/*.dll usr/bin usr/share"
+libXpm_noX_devel_CONTENTS='usr/include usr/lib etc/'
+libXpm_noX_4_CONTENTS='cygXpm-noX-4.dll'
+
+src_compile() {
+	cd ${S}
+	cygautoreconf
+
+	cd ${B}
+	cygconf --includedir=/usr/include/noX --libdir=/usr/lib/noX \
+	  --disable-stat-zfile --with-localedir=no --enable-static
+	cygmake -j1
+
+	# custom rules...
+	./libtool --mode=compile gcc -I. -I${S}/include -I${S}/include/X11 -I${S}/src \
+		-DXPM_NO_X ${CPPFLAGS} ${CFLAGS} -o ${B}/sxpm-win.o -c ${S}/sxpm-win.c
+	./libtool --mode=link gcc -o ${B}/sxpm-win.exe ${B}/sxpm-win.o \
+		./src/libXpm-noX.la
+}
+
+HTMLDOCS="doc/FAQ.html doc/README.html"
+
+src_install() {
+        cd ${B}
+        cyginstall
+
+	DOCS+="${C}/CHANGES sxpm/*xpm"
+
+	dodir /usr/lib/pkgconfig
+	${B}/libtool --mode=install /bin/install -m0755 sxpm-win.exe ${D}/usr/bin/sxpm-noX.exe
+
+	cd ${D}
+	mv usr/lib/noX/pkgconfig/* usr/lib/pkgconfig
+	rmdir usr/lib/noX/pkgconfig
+
+	mv usr/lib/bin/*.dll usr/bin/
+	rmdir usr/lib/bin
+
+	# don't install .la file
+	rm -f usr/lib/noX/libXpm-noX.la
+
+	mv usr/bin/cxpm.exe		usr/bin/cxpm-noX.exe
+	mv usr/share/man/man1/cxpm.1	usr/share/man/man1/cxpm-noX.1
+
+	# don't install manpage for sxpm (it's incorrect, wrt sxpm-win)
+	rm -f usr/share/man/man1/sxpm.1
+}

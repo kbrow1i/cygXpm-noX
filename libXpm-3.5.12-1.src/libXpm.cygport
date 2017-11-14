@@ -1,0 +1,17 @@
+inherit xorg
+
+NAME="libXpm"
+VERSION=3.5.12
+RELEASE=1
+CATEGORY="Libs"
+SUMMARY="X.Org X Pixmap library"
+DESCRIPTION="X Pixmap (XPM) image file format library"
+
+PKG_NAMES="${PN}4 ${PN}-devel sxpm"
+libXpm4_CONTENTS='usr/bin/cygXpm-4.dll usr/share/doc/'
+libXpm_devel_CONTENTS='usr/include/ usr/lib/'
+sxpm_CATEGORY="Graphics"
+sxpm_SUMMARY="X.Org X Pixmap utilities"
+sxpm_CONTENTS='usr/bin/*.exe usr/share/man/'
+
+DOCS="FAQ.html README.html"
