@@ -30,7 +30,7 @@ libXpm_noX_SUMMARY="${SUMMARY} (utilities)"
 
 libXpm_noX_devel_CATEGORY="Graphics Libs Devel"
 libXpm_noX_devel_SUMMARY="${SUMMARY} (devel)"
-libXpm_noX_devel_DESCRIPTIION="${SUMMARY}
+libXpm_noX_devel_DESCRIPTION="${SUMMARY}
 This package provides the (specialized) header files
 and link libraries in /usr/include/noX and /usr/lib/noX,
 respectively."
