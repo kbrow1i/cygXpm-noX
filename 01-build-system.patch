@@ -1,9 +1,19 @@
-diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/configure.ac src/libXpm-3.5.10/configure.ac
---- origsrc/libXpm-3.5.10/configure.ac	2012-03-07 23:40:08.000000000 -0500
-+++ src/libXpm-3.5.10/configure.ac	2013-06-30 18:24:36.229874900 -0400
-@@ -11,21 +11,52 @@
+--- origsrc/libXpm-3.5.12/Makefile.am	2016-12-12 16:44:47.000000000 -0500
++++ src/libXpm-3.5.12/Makefile.am	2017-11-14 18:59:05.860229400 -0500
+@@ -6,7 +6,7 @@ SUBDIRS = doc include man src sxpm cxpm
+ ACLOCAL_AMFLAGS = -I m4
+ 
+ pkgconfigdir = $(libdir)/pkgconfig
+-pkgconfig_DATA = xpm.pc
++pkgconfig_DATA = xpm-nox.pc
+ 
+ EXTRA_DIST = COPYRIGHT NEWS.old
+ 
+--- origsrc/libXpm-3.5.12/configure.ac	2016-12-12 17:09:25.000000000 -0500
++++ src/libXpm-3.5.12/configure.ac	2017-11-14 19:03:15.445588100 -0500
+@@ -10,8 +10,38 @@ AC_CONFIG_MACRO_DIR([m4])
+ # Initialize Automake
  AM_INIT_AUTOMAKE([foreign dist-bzip2])
- AM_MAINTAINER_MODE
  
 +dnl Check for host type
 +AC_CANONICAL_HOST
@@ -41,32 +51,29 @@ diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/configure.ac src/libXpm-3.5.10
  
  # Require X.Org macros 1.8 or later for MAN_SUBSTS set by XORG_MANPAGE_SECTIONS
  m4_ifndef([XORG_MACROS_VERSION],
-           [m4_fatal([must install xorg-macros 1.8 or later before running autoconf/autogen])])
- XORG_MACROS_VERSION(1.8)
- XORG_DEFAULT_OPTIONS
- 
- # Checks for library functions
+@@ -23,9 +53,10 @@ XORG_DEFAULT_OPTIONS
  AC_CHECK_FUNCS([strlcat])
  
  # Obtain compiler/linker options for dependencies
 -PKG_CHECK_MODULES(XPM, xproto x11)
--PKG_CHECK_MODULES(SXPM, x11 xt xext xextproto, build_sxpm=true, build_sxpm=false)
+-PKG_CHECK_MODULES(SXPM, [x11 xt xext xextproto xproto >= 7.0.17],
+-                  [build_sxpm=true], [build_sxpm=false])
 +dnl PKG_CHECK_MODULES(XPM, xproto x11)
-+dnl PKG_CHECK_MODULES(SXPM, x11 xt xext xextproto, build_sxpm=true, build_sxpm=false)
++dnl PKG_CHECK_MODULES(SXPM, [x11 xt xext xextproto xproto >= 7.0.17],
++dnl                   [build_sxpm=true], [build_sxpm=false])
 +build_sxpm=false
  AM_CONDITIONAL(BUILD_SXPM, test x$build_sxpm = xtrue)
  
  # Internationalization & localization support
-@@ -65,5 +96,5 @@
+@@ -74,5 +105,5 @@ AC_CONFIG_FILES([Makefile
                   src/Makefile
                   sxpm/Makefile
                   cxpm/Makefile
 -                 xpm.pc])
 +                 xpm-nox.pc])
  AC_OUTPUT
-diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/cxpm/Makefile.am src/libXpm-3.5.10/cxpm/Makefile.am
---- origsrc/libXpm-3.5.10/cxpm/Makefile.am	2012-03-07 23:40:08.000000000 -0500
-+++ src/libXpm-3.5.10/cxpm/Makefile.am	2013-06-30 18:25:58.704592200 -0400
+--- origsrc/libXpm-3.5.12/cxpm/Makefile.am	2016-12-12 16:44:47.000000000 -0500
++++ src/libXpm-3.5.12/cxpm/Makefile.am	2017-11-14 18:59:05.849168000 -0500
 @@ -1,7 +1,10 @@
  bin_PROGRAMS = cxpm
  
@@ -79,30 +86,84 @@ diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/cxpm/Makefile.am src/libXpm-3.
  
  cxpm_SOURCES = cxpm.c
  
-diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/include/Makefile.am src/libXpm-3.5.10/include/Makefile.am
---- origsrc/libXpm-3.5.10/include/Makefile.am	2012-03-07 23:40:08.000000000 -0500
-+++ src/libXpm-3.5.10/include/Makefile.am	2013-06-30 18:30:56.908648500 -0400
+--- origsrc/libXpm-3.5.12/include/Makefile.am	2016-12-12 16:44:47.000000000 -0500
++++ src/libXpm-3.5.12/include/Makefile.am	2017-11-14 18:59:05.854696000 -0500
 @@ -1 +1,5 @@
  nobase_include_HEADERS = X11/xpm.h
 +
 +libXpmincludedir = $(includedir)/X11
 +libXpminclude_HEADERS = $(top_srcdir)/src/simx.h
 +
-diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/Makefile.am src/libXpm-3.5.10/Makefile.am
---- origsrc/libXpm-3.5.10/Makefile.am	2012-03-07 23:40:08.000000000 -0500
-+++ src/libXpm-3.5.10/Makefile.am	2013-06-30 18:26:17.889689500 -0400
-@@ -6,7 +6,7 @@
- ACLOCAL_AMFLAGS = -I m4
+--- origsrc/libXpm-3.5.12/src/Makefile.am	2016-12-12 16:44:47.000000000 -0500
++++ src/libXpm-3.5.12/src/Makefile.am	2017-11-14 18:59:05.870285400 -0500
+@@ -1,35 +1,36 @@
+ # Daniel Stone disowns all copyright on this file.
  
- pkgconfigdir = $(libdir)/pkgconfig
--pkgconfig_DATA = xpm.pc
-+pkgconfig_DATA = xpm-nox.pc
+-lib_LTLIBRARIES=libXpm.la
++lib_LTLIBRARIES=libXpm-noX.la
  
- EXTRA_DIST = COPYRIGHT NEWS.old
+ AM_CPPFLAGS = -I$(top_srcdir)/include/X11/
+-AM_CFLAGS = $(CWARNFLAGS) $(XPM_CFLAGS)
++AM_CFLAGS = $(CWARNFLAGS) $(XPM_CFLAGS) -DXPM_NO_X
  
-diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/libXpm-noX.def src/libXpm-3.5.10/src/libXpm-noX.def
---- origsrc/libXpm-3.5.10/src/libXpm-noX.def	1969-12-31 19:00:00.000000000 -0500
-+++ src/libXpm-3.5.10/src/libXpm-noX.def	2013-06-30 18:33:24.716102600 -0400
+-libXpm_la_LDFLAGS = -version-number 4:11:0 -no-undefined
+-libXpm_la_LIBADD =  $(XPM_LIBS)
++if WOE32DLL
++DEFCMD = -export-symbols libXpm-noX.exp
++libXpm_noX_la_DEPENDENCIES = libXpm-noX.exp
++libXpm_noX_extralibs = -lgdi32 -luser32
++else
++DEFCMD =
++libXpm_noX_extralibs =
++endif
+ 
+-libXpm_la_SOURCES =					\
++libXpm_noX_la_LDFLAGS = -version-number 4:11:0 -no-undefined $(DEFCMD)
++libXpm_noX_la_LIBADD =  $(XPM_LIBS) $(libXpm_noX_extralibs)
++
++libXpm_noX_la_SOURCES =					\
+ 	Attrib.c					\
+ 	CrBufFrI.c					\
+-	CrBufFrP.c					\
+ 	CrDatFrI.c					\
+-	CrDatFrP.c					\
+ 	CrIFrBuf.c					\
+ 	CrIFrDat.c					\
+-	CrIFrP.c					\
+-	CrPFrBuf.c					\
+-	CrPFrDat.c					\
+-	CrPFrI.c					\
+ 	Image.c						\
+ 	Info.c						\
+ 	RdFToBuf.c					\
+ 	RdFToDat.c					\
+ 	RdFToI.c					\
+-	RdFToP.c					\
+ 	WrFFrBuf.c					\
+ 	WrFFrDat.c					\
+ 	WrFFrI.c					\
+-	WrFFrP.c					\
+ 	XpmI.h						\
+ 	create.c					\
+ 	data.c						\
+@@ -38,6 +39,13 @@ libXpm_la_SOURCES =					\
+ 	parse.c						\
+ 	rgb.c						\
+ 	rgbtab.h					\
+-	scan.c
++	scan.c						\
++	simx.c
++
++EXTRA_DIST = amigax.c amigax.h simx.c simx.h libXpm-noX.def	\
++	CrBufFrP.c CrDatFrP.c CrIFrP.c CrPFrBuf.c CrPFrDat.c CrPFrI.c \
++	RdFToP.c WrFFrP.c
++
++libXpm-noX.exp: $(srcdir)/libXpm-noX.def
++	cat $(srcdir)/libXpm-noX.def | sed -e '1d' -e 's/@.*$$//' > $@
+ 
+-EXTRA_DIST = amigax.c amigax.h simx.c simx.h
+--- origsrc/libXpm-3.5.12/src/libXpm-noX.def	1969-12-31 19:00:00.000000000 -0500
++++ src/libXpm-3.5.12/src/libXpm-noX.def	2017-11-14 18:59:05.864237300 -0500
 @@ -0,0 +1,69 @@
 +EXPORTS
 +XpmAttributesSize @1
@@ -173,78 +234,21 @@ diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/libXpm-noX.def src/libXpm-
 +XFreeColors @110
 +XCreateImage @111
 +XDestroyImage @113
-diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/Makefile.am src/libXpm-3.5.10/src/Makefile.am
---- origsrc/libXpm-3.5.10/src/Makefile.am	2012-03-07 23:40:08.000000000 -0500
-+++ src/libXpm-3.5.10/src/Makefile.am	2013-06-30 18:32:00.930310300 -0400
-@@ -1,35 +1,36 @@
- # Daniel Stone disowns all copyright on this file.
- 
--lib_LTLIBRARIES=libXpm.la
-+lib_LTLIBRARIES=libXpm-noX.la
- 
- AM_CPPFLAGS = -I$(top_srcdir)/include/X11/
--AM_CFLAGS = $(CWARNFLAGS) $(XPM_CFLAGS)
-+AM_CFLAGS = $(CWARNFLAGS) $(XPM_CFLAGS) -DXPM_NO_X
- 
--libXpm_la_LDFLAGS = -version-number 4:11:0 -no-undefined
--libXpm_la_LIBADD =  $(XPM_LIBS)
-+if WOE32DLL
-+DEFCMD = -export-symbols libXpm-noX.exp
-+libXpm_noX_la_DEPENDENCIES = libXpm-noX.exp
-+libXpm_noX_extralibs = -lgdi32 -luser32
-+else
-+DEFCMD =
-+libXpm_noX_extralibs =
-+endif
- 
--libXpm_la_SOURCES =					\
-+libXpm_noX_la_LDFLAGS = -version-number 4:11:0 -no-undefined $(DEFCMD)
-+libXpm_noX_la_LIBADD =  $(XPM_LIBS) $(libXpm_noX_extralibs)
+--- origsrc/libXpm-3.5.12/xpm-nox.pc.in	1969-12-31 19:00:00.000000000 -0500
++++ src/libXpm-3.5.12/xpm-nox.pc.in	2017-11-14 18:59:05.877246300 -0500
+@@ -0,0 +1,10 @@
++prefix=@prefix@
++exec_prefix=@exec_prefix@
++libdir=@libdir@
++includedir=@includedir@
 +
-+libXpm_noX_la_SOURCES =					\
- 	Attrib.c					\
- 	CrBufFrI.c					\
--	CrBufFrP.c					\
- 	CrDatFrI.c					\
--	CrDatFrP.c					\
- 	CrIFrBuf.c					\
- 	CrIFrDat.c					\
--	CrIFrP.c					\
--	CrPFrBuf.c					\
--	CrPFrDat.c					\
--	CrPFrI.c					\
- 	Image.c						\
- 	Info.c						\
- 	RdFToBuf.c					\
- 	RdFToDat.c					\
- 	RdFToI.c					\
--	RdFToP.c					\
- 	WrFFrBuf.c					\
- 	WrFFrDat.c					\
- 	WrFFrI.c					\
--	WrFFrP.c					\
- 	XpmI.h						\
- 	create.c					\
- 	data.c						\
-@@ -38,6 +39,13 @@
- 	parse.c						\
- 	rgb.c						\
- 	rgbtab.h					\
--	scan.c
-+	scan.c						\
-+	simx.c
-+
-+EXTRA_DIST = amigax.c amigax.h simx.c simx.h libXpm-noX.def	\
-+	CrBufFrP.c CrDatFrP.c CrIFrP.c CrPFrBuf.c CrPFrDat.c CrPFrI.c \
-+	RdFToP.c WrFFrP.c
-+
-+libXpm-noX.exp: $(srcdir)/libXpm-noX.def
-+	cat $(srcdir)/libXpm-noX.def | sed -e '1d' -e 's/@.*$$//' > $@
- 
--EXTRA_DIST = amigax.c amigax.h simx.c simx.h
-diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/xpm.pc.in src/libXpm-3.5.10/xpm.pc.in
---- origsrc/libXpm-3.5.10/xpm.pc.in	2012-03-07 23:40:08.000000000 -0500
-+++ src/libXpm-3.5.10/xpm.pc.in	1969-12-31 19:00:00.000000000 -0500
++Name: Xpm-noX
++Description: X Pixmap Library
++Version: @PACKAGE_VERSION@
++Cflags: -I${includedir} -DXPM_NO_X
++Libs: -L${libdir} -lXpm-noX -lgdi32 -luser32
+--- origsrc/libXpm-3.5.12/xpm.pc.in	2016-12-12 16:44:47.000000000 -0500
++++ src/libXpm-3.5.12/xpm.pc.in	1969-12-31 19:00:00.000000000 -0500
 @@ -1,12 +0,0 @@
 -prefix=@prefix@
 -exec_prefix=@exec_prefix@
@@ -258,17 +262,3 @@ diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/xpm.pc.in src/libXpm-3.5.10/xp
 -Requires.private: x11
 -Cflags: -I${includedir}
 -Libs: -L${libdir} -lXpm
-diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/xpm-nox.pc.in src/libXpm-3.5.10/xpm-nox.pc.in
---- origsrc/libXpm-3.5.10/xpm-nox.pc.in	1969-12-31 19:00:00.000000000 -0500
-+++ src/libXpm-3.5.10/xpm-nox.pc.in	2013-06-30 18:33:38.159871500 -0400
-@@ -0,0 +1,10 @@
-+prefix=@prefix@
-+exec_prefix=@exec_prefix@
-+libdir=@libdir@
-+includedir=@includedir@
-+
-+Name: Xpm-noX
-+Description: X Pixmap Library
-+Version: @PACKAGE_VERSION@
-+Cflags: -I${includedir} -DXPM_NO_X
-+Libs: -L${libdir} -lXpm-noX -lgdi32 -luser32

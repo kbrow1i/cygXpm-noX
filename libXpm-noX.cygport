@@ -2,24 +2,26 @@ NAME="libXpm-noX"
 VERSION=3.5.12
 RELEASE=1
 SUMMARY="X.Org X Pixmap library -- no X required"
-DESCRIPTION="
+DESCRIPTION="A version of the X.Org X Pixmap library that does not require an X
+server, and provides none of the X-based display routines.  It
+provides tools and libraries for manipulating XPM images.  It is
+useful if you have an application that needs to read and write Xpm
+format files, but either does not display them or handles display
+itself, without accessing X11 services."
 
-A version of the X.Org X Pixmap library that does
-not require an X server, and provides none of the X-based display
-routines.  It provides tools and libraries for manipulating XPM
-images.  It is useful if you have an application that needs to
-read and write Xpm format files, but either does not display
-them or handles display itself, without accessing X11 services."
 HOMEPAGE="https://cgit.freedesktop.org/xorg/lib/libXpm"
 ORIG_PN="libXpm"
 xorg_cat="lib"
-SRC_URI="http://xorg.freedesktop.org/releases/individual/${xorg_cat}/${ORIG_PN}-${PV}.tar.bz2
-	sxpm-win.c"
-PATCH_URI="
-	01-build-system.patch
-	02-msw-doc.patch
-	03-cxpm-syntax.patch
-	04-source-code.patch"
+SRC_URI="http://xorg.freedesktop.org/releases/individual/${xorg_cat}/${ORIG_PN}-${PV}.tar.bz2"
+SRC_URI+=" sxpm-win.c"
+SRC_URI+=" README.Cygwin"
+SRC_URI+=" postinstall.sh"
+SRC_URI+=" preremove.sh"
+
+PATCH_URI="01-build-system.patch"
+PATCH_URI+=" 02-msw-doc.patch"
+PATCH_URI+=" 03-cxpm-syntax.patch"
+PATCH_URI+=" 04-source-code.patch"
 
 PKG_NAMES="libXpm-noX libXpm-noX-devel libXpm-noX_4"
 
@@ -38,7 +40,9 @@ libXpm_noX_4_SUMMARY="${SUMMARY} (runtime)"
 
 libXpm_noX_CONTENTS="--exclude=usr/bin/*.dll usr/bin usr/share"
 libXpm_noX_devel_CONTENTS='usr/include usr/lib etc/'
-libXpm_noX_4_CONTENTS='cygXpm-noX-4.dll'
+libXpm_noX_4_CONTENTS='usr/bin/cygXpm-noX-4.dll'
+
+DEPEND="xorg-util-macros"
 
 src_compile() {
 	cd ${S}
@@ -57,25 +61,22 @@ src_compile() {
 }
 
 HTMLDOCS="doc/FAQ.html doc/README.html"
+DOCS="README.Cygwin sxpm/*xpm doc/README.MSW"
 
 src_install() {
         cd ${B}
         cyginstall
 
-	DOCS+="${C}/CHANGES sxpm/*xpm"
-
 	dodir /usr/lib/pkgconfig
 	${B}/libtool --mode=install /bin/install -m0755 sxpm-win.exe ${D}/usr/bin/sxpm-noX.exe
 
+	exeinto /etc/postinstall
+	newexe ${S}/postinstall.sh libXpm-noX-devel.sh
+	exeinto /etc/preremove
+	newexe ${S}/preremove.sh libXpm-noX-devel.sh
+
 	cd ${D}
 	mv usr/lib/noX/pkgconfig/* usr/lib/pkgconfig
-	rmdir usr/lib/noX/pkgconfig
-
-	mv usr/lib/bin/*.dll usr/bin/
-	rmdir usr/lib/bin
-
-	# don't install .la file
-	rm -f usr/lib/noX/libXpm-noX.la
 
 	mv usr/bin/cxpm.exe		usr/bin/cxpm-noX.exe
 	mv usr/share/man/man1/cxpm.1	usr/share/man/man1/cxpm-noX.1
