@@ -1,0 +1,23 @@
+From cygwin-announce-libXpm-noX-3.5.12-1 Mon Nov 20 15:47:14 2017
+From: Ken Brown <kbrown@cornell.edu>
+To: cygwin-announce@cygwin.com
+Date: Mon, 20 Nov 2017 15:47:14 -0500
+Subject: libXpm-noX 3.5.12-1
+
+The following packages have been uploaded to the Cygwin distribution:
+
+* libXpm-noX-3.5.12-1
+* libXpm-noX-devel-3.5.12-1
+* libXpm-noX_4-3.5.12-1
+
+libXpm-noX is a version of the X.Org X Pixmap library that does not
+require an X server and provides none of the X-based display routines.
+It provides tools and libraries for manipulating XPM images.  It is
+useful if you have an application that needs to read and write Xpm
+format files, but either does not display them or handles display
+itself, without accessing X11 services.
+
+This is an update to the latest upstream release.
+
+Ken Brown
+Cygwin's (new) libXpm-noX maintainer
