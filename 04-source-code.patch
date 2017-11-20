@@ -679,7 +679,7 @@ diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/scan.c src/libXpm-3.5.10/s
 diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/simx.c src/libXpm-3.5.10/src/simx.c
 --- origsrc/libXpm-3.5.10/src/simx.c	2012-03-07 23:40:08.000000000 -0500
 +++ src/libXpm-3.5.10/src/simx.c	2013-06-30 18:51:19.660585900 -0400
-@@ -33,7 +33,7 @@
+@@ -33,13 +33,13 @@
  * Developed by HeDu 3/94 (hedu@cul-ipn.uni-kiel.de)                           *
  \*****************************************************************************/
  
@@ -688,6 +688,13 @@ diff -urN -x CYGWIN-PATCHES origsrc/libXpm-3.5.10/src/simx.c src/libXpm-3.5.10/s
  
  #ifdef HAVE_CONFIG_H
  #include <config.h>
+ #endif
+ #include "xpm.h"
+-#include "xpmi.h"			/* for XpmMalloc */
++#include "XpmI.h"			/* for XpmMalloc */
+ 
+ /*
+  * On DOS size_t is only 2 bytes, thus malloc(size_t s) can only malloc
 @@ -108,22 +108,22 @@
  
  /* static Visual theVisual = { 0 }; */
